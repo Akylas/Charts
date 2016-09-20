@@ -49,8 +49,7 @@
     
     _chartView.delegate = self;
     
-    _chartView.descriptionText = @"";
-    _chartView.noDataTextDescription = @"You need to provide data for the chart.";
+    _chartView.chartDescription.enabled = NO;
     
     _chartView.dragEnabled = YES;
     [_chartView setScaleEnabled:YES];
@@ -204,7 +203,7 @@
     {
         for (id<ILineChartDataSet> set in _chartView.data.dataSets)
         {
-            set.drawCubicEnabled = !set.isDrawCubicEnabled;
+            set.mode = set.mode == LineChartModeCubicBezier ? LineChartModeLinear : LineChartModeCubicBezier;
         }
         
         [_chartView setNeedsDisplay];
