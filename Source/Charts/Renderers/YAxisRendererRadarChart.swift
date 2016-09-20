@@ -91,7 +91,7 @@ open class YAxisRendererRadarChart: YAxisRenderer
         {
             if (axis.showOnlyMinMaxEnabled)
             {
-                axis.entries.removeAll(keepCapacity: true)
+                axis.entries.removeAll()
                 axis.entries.reserveCapacity(2)
                 axis.entries.append(yMin)
                 axis.entries.append(yMax)
@@ -106,41 +106,39 @@ open class YAxisRendererRadarChart: YAxisRenderer
                     first -= interval
                 }
 
-            let last = interval == 0.0 ? 0.0 : ChartUtils.nextUp(floor(yMax / interval) * interval)
-            
-            if interval != 0.0
-            {
-                for _ in stride(from: first, through: last, by: interval)
+                let last = interval == 0.0 ? 0.0 : ChartUtils.nextUp(floor(yMax / interval) * interval)
+                
+                if interval != 0.0
                 {
-                    for _ in first.stride(through: last, by: interval)
+                    for _ in stride(from: first, through: last, by: interval)
                     {
                         n += 1
                     }
                 }
-            }
-            
-            n += 1
-            
-            // Ensure stops contains at least n elements.
-            axis.entries.removeAll(keepingCapacity: true)
-            axis.entries.reserveCapacity(labelCount)
-            
-            var f = first
-            var i = 0
-            while i < n
-            {
-                if f == 0.0
+                
+                n += 1
+                
+                // Ensure stops contains at least n elements.
+                axis.entries.removeAll(keepingCapacity: true)
+                axis.entries.reserveCapacity(labelCount)
+                
+                var f = first
+                var i = 0
+                while i < n
                 {
                     if f == 0.0
                     {
-                        // Fix for IEEE negative zero case (Where value == -0.0, and 0.0 == -0.0)
-                        f = 0.0
-                    }
+                        if f == 0.0
+                        {
+                            // Fix for IEEE negative zero case (Where value == -0.0, and 0.0 == -0.0)
+                            f = 0.0
+                        }
 
-                    axis.entries.append(Double(f))
-                    
-                    f += interval
-                    i += 1
+                        axis.entries.append(Double(f))
+                        
+                        f += interval
+                        i += 1
+                    }
                 }
             }
         }

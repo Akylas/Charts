@@ -50,7 +50,7 @@ open class ChartUtils
         }
         
         let i = roundToNextSignificant(number: Double(number))
-        if (isinf(i) || isnan(i))
+        if (i.isInfinite || i.isNaN)
         {
             return 0
         }
