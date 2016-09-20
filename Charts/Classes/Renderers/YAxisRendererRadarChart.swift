@@ -36,7 +36,7 @@ public class YAxisRendererRadarChart: YAxisRenderer
         let labelCount = axis.labelCount
         let range = abs(yMax - yMin)
         
-        if (labelCount == 0 || range <= 0)
+        if (labelCount == 0 || range <= 0 || range <= 0)
         {
             axis.entries = [Double]()
             return
@@ -92,45 +92,54 @@ public class YAxisRendererRadarChart: YAxisRenderer
         }
         else
         {
-            // no forced count
-            
-            var first = interval == 0.0 ? 0.0 : ceil(yMin / interval) * interval
-            
-            if centeringEnabled
+            if (axis.showOnlyMinMaxEnabled)
             {
-                first -= interval
-            }
-
-            let last = interval == 0.0 ? 0.0 : ChartUtils.nextUp(floor(yMax / interval) * interval)
-            
-            if interval != 0.0
-            {
-                for _ in first.stride(through: last, by: interval)
-                {
-                    n += 1
-                }
-            }
-            
-            n += 1
-            
-            // Ensure stops contains at least n elements.
-            axis.entries.removeAll(keepCapacity: true)
-            axis.entries.reserveCapacity(labelCount)
-            
-            var f = first
-            var i = 0
-            while i < n
-            {
-                if f == 0.0
-                {
-                    // Fix for IEEE negative zero case (Where value == -0.0, and 0.0 == -0.0)
-                    f = 0.0
-                }
-
-                axis.entries.append(Double(f))
+                axis.entries.removeAll(keepCapacity: true)
+                axis.entries.reserveCapacity(2)
+                axis.entries.append(yMin)
+                axis.entries.append(yMax)
+                n = 2;
+            } else {
+                // no forced count
                 
-                f += interval
-                i += 1
+                var first = interval == 0.0 ? 0.0 : ceil(yMin / interval) * interval
+                
+                if centeringEnabled
+                {
+                    first -= interval
+                }
+
+                let last = interval == 0.0 ? 0.0 : ChartUtils.nextUp(floor(yMax / interval) * interval)
+                
+                if interval != 0.0
+                {
+                    for _ in first.stride(through: last, by: interval)
+                    {
+                        n += 1
+                    }
+                }
+                
+                n += 1
+                
+                // Ensure stops contains at least n elements.
+                axis.entries.removeAll(keepCapacity: true)
+                axis.entries.reserveCapacity(labelCount)
+                
+                var f = first
+                var i = 0
+                while i < n
+                {
+                    if f == 0.0
+                    {
+                        // Fix for IEEE negative zero case (Where value == -0.0, and 0.0 == -0.0)
+                        f = 0.0
+                    }
+
+                    axis.entries.append(Double(f))
+                    
+                    f += interval
+                    i += 1
+                }
             }
         }
         
@@ -156,7 +165,6 @@ public class YAxisRendererRadarChart: YAxisRenderer
                 axis.centeredEntries.append(axis.entries[i] + offset)
             }
         }
-        
         axis._axisMinimum = axis.entries[0];
         axis._axisMaximum = axis.entries[n-1];
         axis.axisRange = abs(axis._axisMaximum - axis._axisMinimum)

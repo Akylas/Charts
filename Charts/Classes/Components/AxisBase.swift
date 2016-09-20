@@ -55,6 +55,13 @@ public class AxisBase: ComponentBase
     {
         get { return centerAxisLabelsEnabled }
     }
+    
+    private var _showOnlyMinMaxEnabled = false;
+    public var showOnlyMinMaxEnabled: Bool
+        {
+        get { return _showOnlyMinMaxEnabled }
+        set { _showOnlyMinMaxEnabled = newValue }
+    }
 
     /// array of limitlines that can be set for the axis
     private var _limitLines = [ChartLimitLine]()

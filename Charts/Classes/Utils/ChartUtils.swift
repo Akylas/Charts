@@ -50,6 +50,10 @@ public class ChartUtils
         }
         
         let i = roundToNextSignificant(number: Double(number))
+        if (isinf(i) || isnan(i))
+        {
+            return 0
+        }
         return Int(ceil(-log10(i))) + 2
     }
     
