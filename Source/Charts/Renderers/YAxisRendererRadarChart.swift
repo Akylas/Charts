@@ -128,17 +128,14 @@ open class YAxisRendererRadarChart: YAxisRenderer
                 {
                     if f == 0.0
                     {
-                        if f == 0.0
-                        {
-                            // Fix for IEEE negative zero case (Where value == -0.0, and 0.0 == -0.0)
-                            f = 0.0
-                        }
-
-                        axis.entries.append(Double(f))
-                        
-                        f += interval
-                        i += 1
+                        // Fix for IEEE negative zero case (Where value == -0.0, and 0.0 == -0.0)
+                        f = 0.0
                     }
+
+                    axis.entries.append(Double(f))
+                    
+                    f += interval
+                    i += 1
                 }
             }
         }
