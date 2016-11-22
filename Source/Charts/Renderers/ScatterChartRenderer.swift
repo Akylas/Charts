@@ -194,8 +194,6 @@ open class ScatterChartRenderer: LineScatterCandleRadarRenderer
             let animator = animator
             else { return }
         
-        let chartXMax = dataProvider.chartXMax
-        
         context.saveGState()
         
         for high in indices
@@ -205,14 +203,10 @@ open class ScatterChartRenderer: LineScatterCandleRadarRenderer
                 set.isHighlightEnabled
                 else { continue }
             
-            guard let e = set.entryForIndex(Int(high.x))
-                else { continue }
+            guard let entry = set.entryForXValue(high.x, closestToY: high.y) else { continue }
             
-            if !isInBoundsX(entry: e, dataSet: set)
-            {
-                continue
-            }
-        
+            if !isInBoundsX(entry: entry, dataSet: set) { continue }
+            
             context.setStrokeColor(set.highlightColor.cgColor)
             context.setLineWidth(set.highlightLineWidth)
             if set.highlightLineDashLengths != nil
@@ -224,13 +218,8 @@ open class ScatterChartRenderer: LineScatterCandleRadarRenderer
                 context.setLineDash(phase: 0.0, lengths: [])
             }
             
-            let x = high.x // get the x-position
-            let y = high.y * Double(animator.phaseY)
-            
-            if x > chartXMax * animator.phaseX
-            {
-                continue
-            }
+            let x = entry.x // get the x-position
+            let y = entry.y * Double(animator.phaseY)
             
             let trans = dataProvider.getTransformer(forAxis: set.axisDependency)
             

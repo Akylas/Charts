@@ -50,7 +50,7 @@ open class AxisBase: ComponentBase
     /// This is useful especially for grouped BarChart.
     open var centerAxisLabelsEnabled: Bool
     {
-        get { return _centerAxisLabelsEnabled && entryCount > 1 }
+        get { return _centerAxisLabelsEnabled && entryCount > 0 }
         set { _centerAxisLabelsEnabled = newValue }
     }
     
@@ -86,7 +86,7 @@ open class AxisBase: ComponentBase
     /// the number of entries the legend contains
     open var entryCount: Int { return entries.count }
     
-    /// the number of y-label entries the y-labels should have
+    /// the number of label entries the axis should have
     ///
     /// **default**: 6
     fileprivate var _labelCount = Int(6)
@@ -195,6 +195,12 @@ open class AxisBase: ComponentBase
     /// **default**: false
     open var isDrawLimitLinesBehindDataEnabled: Bool { return drawLimitLinesBehindDataEnabled }
     
+    /// Extra spacing for `axisMinimum` to be added to automatically calculated `axisMinimum`
+    open var spaceMin: Double = 0.0
+    
+    /// Extra spacing for `axisMaximum` to be added to automatically calculated `axisMaximum`
+    open var spaceMax: Double = 0.0
+    
     /// Flag indicating that the axis-min value has been customized
     internal var _customAxisMin: Bool = false
     
@@ -214,7 +220,7 @@ open class AxisBase: ComponentBase
     /// the total range of values this axis covers
     open var axisRange = Double(0)
     
-    /// the number of label entries the y-axis should have
+    /// the number of label entries the axis should have
     /// max = 25,
     /// min = 2,
     /// default = 6,
@@ -335,7 +341,7 @@ open class AxisBase: ComponentBase
     
     /// The maximum value for this axis.
     /// If set, this value will not be calculated automatically depending on the provided data.
-    /// Use `resetCustomAxisMin()` to undo this.
+    /// Use `resetCustomAxisMax()` to undo this.
     open var axisMaximum: Double
     {
         get
@@ -346,7 +352,7 @@ open class AxisBase: ComponentBase
         {
             _customAxisMax = true
             _axisMaximum = newValue
-            axisRange = abs(_axisMaximum - newValue)
+            axisRange = abs(newValue - _axisMinimum)
         }
     }
     
@@ -356,8 +362,8 @@ open class AxisBase: ComponentBase
     open func calculate(min dataMin: Double, max dataMax: Double)
     {
         // if custom, use value as is, else use data value
-        var min = _customAxisMin ? _axisMinimum : dataMin
-        var max = _customAxisMax ? _axisMaximum : dataMax
+        var min = _customAxisMin ? _axisMinimum : (dataMin - spaceMin)
+        var max = _customAxisMax ? _axisMaximum : (dataMax + spaceMax)
         
         // temporary range (before calculations)
         let range = abs(max - min)

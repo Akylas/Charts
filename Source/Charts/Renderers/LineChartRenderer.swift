@@ -114,22 +114,33 @@ open class LineChartRenderer: LineRadarRenderer
             var curDx: CGFloat = 0.0
             var curDy: CGFloat = 0.0
             
-            var prevPrev: ChartDataEntry! = dataSet.entryForIndex(_xBounds.min)
-            var prev: ChartDataEntry! = prevPrev
-            var cur: ChartDataEntry! = prev
-            var next: ChartDataEntry! = dataSet.entryForIndex(_xBounds.min + 1)
+            // Take an extra point from the left, and an extra from the right.
+            // That's because we need 4 points for a cubic bezier (cubic=4), otherwise we get lines moving and doing weird stuff on the edges of the chart.
+            // So in the starting `prev` and `cur`, go -2, -1
+            // And in the `lastIndex`, add +1
             
-            if cur == nil || next == nil { return }
+            let firstIndex = _xBounds.min + 1
+            let lastIndex = _xBounds.min + _xBounds.range
+            
+            var prevPrev: ChartDataEntry! = nil
+            var prev: ChartDataEntry! = dataSet.entryForIndex(max(firstIndex - 2, 0))
+            var cur: ChartDataEntry! = dataSet.entryForIndex(max(firstIndex - 1, 0))
+            var next: ChartDataEntry! = cur
+            var nextIndex: Int = -1
+            
+            if cur == nil { return }
             
             // let the spline start
             cubicPath.move(to: CGPoint(x: CGFloat(cur.x), y: CGFloat(cur.y * phaseY)), transform: valueToPixelMatrix)
             
-            for j in stride(from: (_xBounds.min + 1), through: _xBounds.range + _xBounds.min, by: 1)
+            for j in stride(from: firstIndex, through: lastIndex, by: 1)
             {
                 prevPrev = prev
                 prev = cur
-                cur = next
-                next = _xBounds.max > j + 1 ? dataSet.entryForIndex(j + 1) : cur
+                cur = nextIndex == j ? next : dataSet.entryForIndex(j)
+                
+                nextIndex = j + 1 < dataSet.entryCount ? j + 1 : j
+                next = dataSet.entryForIndex(nextIndex)
                 
                 if next == nil { break }
                 
@@ -327,7 +338,7 @@ open class LineChartRenderer: LineRadarRenderer
                 _lineSegments[0].x = CGFloat(e.x)
                 _lineSegments[0].y = CGFloat(e.y * phaseY)
                 
-                if j < _xBounds.range
+                if j < _xBounds.max
                 {
                     e = dataSet.entryForIndex(j + 1)
                     
@@ -361,7 +372,6 @@ open class LineChartRenderer: LineRadarRenderer
                 
                 // make sure the lines don't do shitty things outside bounds
                 if !viewPortHandler.isInBoundsLeft(_lineSegments[1].x)
-                    || (!viewPortHandler.isInBoundsTop(_lineSegments[0].y) && !viewPortHandler.isInBoundsBottom(_lineSegments[1].y))
                     || (!viewPortHandler.isInBoundsTop(_lineSegments[0].y) && !viewPortHandler.isInBoundsBottom(_lineSegments[1].y))
                 {
                     continue
@@ -508,7 +518,6 @@ open class LineChartRenderer: LineRadarRenderer
         {
             var dataSets = lineData.dataSets
             
-            let phaseX = max(0.0, min(1.0, animator.phaseX))
             let phaseY = animator.phaseY
             
             var pt = CGPoint()
@@ -539,7 +548,7 @@ open class LineChartRenderer: LineRadarRenderer
                 
                 _xBounds.set(chart: dataProvider, dataSet: dataSet, animator: animator)
                 
-                for j in stride(from: _xBounds.min, to: Int(ceil(Double(_xBounds.max - _xBounds.min) * phaseX + Double(_xBounds.min))), by: 1)
+                for j in stride(from: _xBounds.min, through: min(_xBounds.min + _xBounds.range, _xBounds.max), by: 1)
                 {
                     guard let e = dataSet.entryForIndex(j) else { break }
                     
@@ -656,10 +665,14 @@ open class LineChartRenderer: LineRadarRenderer
                     context.addEllipse(in: rect)
                     
                     // Cut hole in path
-                    context.addArc(center: pt, radius: circleHoleRadius, startAngle: 0.0, endAngle: CGFloat(M_PI_2), clockwise: true)
+                    rect.origin.x = pt.x - circleHoleRadius
+                    rect.origin.y = pt.y - circleHoleRadius
+                    rect.size.width = circleHoleDiameter
+                    rect.size.height = circleHoleDiameter
+                    context.addEllipse(in: rect)
                     
                     // Fill in-between
-                    context.fillPath()
+                    context.fillPath(using: .evenOdd)
                 }
                 else
                 {
@@ -702,7 +715,7 @@ open class LineChartRenderer: LineRadarRenderer
                 , set.isHighlightEnabled
                 else { continue }
             
-            guard let e = set.entryForXValue(high.x) else { continue }
+            guard let e = set.entryForXValue(high.x, closestToY: high.y) else { continue }
             
             if !isInBoundsX(entry: e, dataSet: set)
             {
