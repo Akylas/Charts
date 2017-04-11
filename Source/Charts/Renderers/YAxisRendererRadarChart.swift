@@ -141,7 +141,7 @@ open class YAxisRendererRadarChart: YAxisRenderer
         }
         
         // set decimals
-        if interval < 1
+        if interval != 0 && interval < 1
         {
             axis.decimals = Int(ceil(-log10(interval)))
         }
