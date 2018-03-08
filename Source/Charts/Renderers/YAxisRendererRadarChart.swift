@@ -105,12 +105,11 @@ open class YAxisRendererRadarChart: YAxisRenderer
                 {
                     first -= interval
                 }
+              
 
-            let last = interval == 0.0 ? 0.0 : (floor(yMax / interval) * interval).nextUp
+                let last = interval == 0.0 ? 0.0 : (floor(yMax / interval) * interval).nextUp
             
-            if interval != 0.0
-            {
-                for _ in stride(from: first, through: last, by: interval)
+                if interval != 0.0
                 {
                     for _ in stride(from: first, through: last, by: interval)
                     {
